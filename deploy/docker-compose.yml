@@ -1,0 +1,52 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.frontend
+    container_name: sm-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    image: eclipse-temurin:17-jre-alpine
+    container_name: sm-backend
+    working_dir: /app
+    # 先把 Spring Boot 打成 jar：cd backend && mvn clean package -DskipTests
+    volumes:
+      - ../backend/target:/app
+    command: ["java", "-jar", "/app/smart-materials-server.jar"]
+    environment:
+      # PostgreSQL 15（jsonb 字段必须用 PG）
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: smart_materials
+      DB_USER: sm_user
+      DB_PASSWORD: change_me_please
+      DB_SSLMODE: disable
+      JWT_SECRET: change_me_to_a_random_secret_with_32_chars_min
+      JWT_EXPIRE_MINUTES: 720
+      CORS_ALLOWED_ORIGINS: "*"
+      SQL_INIT_MODE: always
+      SEED_PASSWORD: "123456"
+      TZ: Asia/Shanghai
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: sm-db
+    environment:
+      POSTGRES_DB: smart_materials
+      POSTGRES_USER: sm_user
+      POSTGRES_PASSWORD: change_me_please
+      TZ: Asia/Shanghai
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db_data:

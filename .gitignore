@@ -1,0 +1,36 @@
+# ===== 必需忽略项 =====
+node_modules/
+target/
+dist/
+dist-ssr/
+.env
+.env.local
+.env.*.local
+.vscode/
+
+# 本机构建工具（Maven / PostgreSQL 等，体积约 1.6GB，绝不能提交）
+.tooling/
+
+# 后端构建产物
+backend/*.jar
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+.idea/
+.settings/
+
+# 日志与缓存
+*.log
+npm-debug.log*
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# 本地临时文件
+tmp/
+temp/
+*.bak
+
+# 运行期附件与本地上传目录
+uploads/

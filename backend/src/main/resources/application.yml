@@ -1,0 +1,93 @@
+# ============================================================================
+#  材智通 · 智慧材料库 —— 后端运行配置
+#  PostgreSQL 15 required (JSONB / jsonb 字段需要 PG，不要用 MySQL)
+#  所有敏感值都从环境变量读取，本地开发可用默认值直接跑
+# ============================================================================
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: smart-materials-server
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+  datasource:
+    # Render / 云数据库：直接设置 SPRING_DATASOURCE_URL 会覆盖本行
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smart_materials}?sslmode=${DB_SSLMODE:prefer}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 1
+      connection-timeout: 30000
+
+  sql:
+    init:
+      # 启动时自动建表 + 写入种子数据（脚本可重复执行，ON CONFLICT / IF NOT EXISTS）
+      # 生产环境想关闭自动建表：设置 SQL_INIT_MODE=never
+      mode: ${SQL_INIT_MODE:always}
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
+      encoding: UTF-8
+      continue-on-error: false
+
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: always
+    serialization:
+      write-dates-as-timestamps: false
+
+  # 附件上传（损耗照片）与 Excel 批量导入
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  jwt:
+    # 生产必须替换：至少 32 个字符的随机串
+    secret: ${JWT_SECRET:change-me-smart-materials-jwt-secret-key-32bytes-minimum}
+    expire-minutes: ${JWT_EXPIRE_MINUTES:720}
+  cors:
+    # 逗号分隔；* 表示放开全部来源（前后端分离部署时按需收窄）
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+  ldap:
+    enabled: ${LDAP_ENABLED:false}
+  init:
+    # 首次启动写演示数据（用户 / 批次 / 示例流水），已存在则跳过
+    seed: ${SEED_DATA:true}
+  upload:
+    # 附件（损耗照片 / 报废凭证）本地存储目录；生产可用 UPLOAD_DIR 指向持久盘
+    dir: ${UPLOAD_DIR:./uploads}
+    max-size-bytes: ${UPLOAD_MAX_BYTES:10485760}
+
+logging:
+  level:
+    root: INFO
+    com.smartmaterials: INFO

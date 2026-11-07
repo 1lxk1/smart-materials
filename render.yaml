@@ -1,0 +1,54 @@
+# Render Blueprint（可选）
+# 用法：把仓库推到 GitHub → Render 控制台 New + → Blueprint → 选择本仓库 → Apply
+# 它会同时创建 PostgreSQL 15 + 后端 Web Service，并自动注入数据库环境变量。
+
+databases:
+  - name: smart-materials-db
+    databaseName: smart_materials
+    user: sm_user
+    plan: free
+    region: singapore
+
+services:
+  - type: web
+    name: smart-materials-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: smart-materials-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: smart-materials-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: smart-materials-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: smart-materials-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: smart-materials-db
+          property: password
+      - key: DB_SSLMODE
+        value: prefer
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: SQL_INIT_MODE
+        value: always
+      - key: SEED_DATA
+        value: "true"
+      - key: SEED_PASSWORD
+        sync: false
