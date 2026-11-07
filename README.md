@@ -1,3 +1,13 @@
+---
+title: 材智通 · 智慧材料库 API
+emoji: 📦
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 材智通 · 智慧材料库数字化管理系统（全栈版）
 
 依据需求文档《智慧材料库数字化管理系统》实现：**React + Vite + Ant Design** 前端，
